@@ -15,9 +15,6 @@ public class MenuResponseDTO {
     private Long price;
     private long quantity;
     private LocalDateTime last_update;
-
-    // --- requires Menu entity to actually reference these ---
-    private Long category_id;
     private String category_name;   // from Menu_Category
     private Byte[] image;           // from Menu_image
 }

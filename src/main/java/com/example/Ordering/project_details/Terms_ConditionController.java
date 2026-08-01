@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/privacy")
+@RequestMapping("/api/terms")
 @AllArgsConstructor
 public class Terms_ConditionController {
     private final TermsConditionRepository privacyPolicyRepository;

@@ -12,4 +12,5 @@ public class MenuRequestDTO {
     private String description;
     private Long price;
     private long quantity;
+    private String category_name;
 }

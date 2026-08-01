@@ -4,6 +4,7 @@ import com.example.Ordering.map.MAP;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +17,7 @@ public class UserController {
 
     private UserRepository userRepository;
         private AdminRepository adminRepository;
+        private PasswordEncoder passwordEncoder;
     @RequestMapping("register")
     public ResponseEntity<?> register(@RequestBody  UserRequestDTO dto){
         if(dto.getEmail().matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$")) {
@@ -38,7 +40,7 @@ public class UserController {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         User u = byEmail.get();
-        if(!u.getPassword().equals(dto.getPassword())){
+        if(!passwordEncoder.matches(dto.getPassword(),u.getPassword())){
           return new ResponseEntity<>(HttpStatus.BAD_GATEWAY);
         }return new ResponseEntity<>(HttpStatus.ACCEPTED);
     }
