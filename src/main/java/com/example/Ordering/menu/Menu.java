@@ -24,6 +24,5 @@ public class Menu {
     private long quantity;
     private LocalDateTime last_update;
 
-
 }
 
