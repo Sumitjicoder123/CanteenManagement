@@ -20,12 +20,12 @@ public class Menu_CategoryController {
     private final MenuRepository menuRepository;
     @GetMapping("all/Category_name")
     private ResponseEntity<?> getAllCategory(){
-        return ResponseEntity.ok(menuCategoryRepository.findAll().stream().map(Menu_Category::getCateogry_name));
+        return ResponseEntity.ok(menuCategoryRepository.findAll().stream().map(Menu_Category::getCategory_name));
     }
 
     @GetMapping("all/Category_product")
     private ResponseEntity<?> getAllCategoryProduct(){
-        return ResponseEntity.ok(menuCategoryRepository.findAll().stream().map(Menu_Category::getCateogry_name));
+        return ResponseEntity.ok(menuCategoryRepository.findAll().stream().map(Menu_Category::getCategory_name));
     }
 
     @PostMapping("addProduct")
@@ -38,7 +38,7 @@ public class Menu_CategoryController {
         String categoryName = menu.getCategory_name();
        Menu menu1= MAP.map(menu,Menu::new);
            Menu_Category menuCategory1 = new Menu_Category();
-           menuCategory1.setCateogry_name(categoryName);
+           menuCategory1.setCategory_name(categoryName);
            menu1.setMenuCategory(menuCategory1);
            menu1.setLast_update(LocalDateTime.now());
            menuRepository.save(menu1);
