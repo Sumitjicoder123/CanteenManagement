@@ -46,7 +46,7 @@ public class UserService {
         user.setName(request.getName() != null ? request.getName() : "User " + phone.substring(Math.max(0, phone.length() - 4)));
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setRole(request.getRole() != null ? request.getRole() : Role.USER);
+        user.setRole(Role.USER);
         user.setCreatedAt(LocalDateTime.now());
 
         User savedUser = userRepository.save(user);

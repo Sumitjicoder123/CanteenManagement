@@ -1,5 +1,6 @@
 package com.example.Ordering.order_details;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -16,7 +17,15 @@ public class OrderDetailsResponseDTO {
     private Long id;
     private String token_number;
     private String qr_data;
+
+    @JsonProperty("Total")
     private Long Total;
+
+    @JsonProperty("total")
+    public Long getLowerTotal() {
+        return Total;
+    }
+
     private Long discountAmount;
     private int number_of_times_user_tried_payment;
     private LocalDateTime created_at;

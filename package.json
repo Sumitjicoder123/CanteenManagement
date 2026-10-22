@@ -1,0 +1,12 @@
+{
+  "name": "canteen-management-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Root build & deployment scripts for Grand Royale CanteenManagement (Angular + Spring Boot / Vercel)",
+  "scripts": {
+    "install:frontend": "npm --prefix frontend install",
+    "build": "npm --prefix frontend install && npm --prefix frontend run build && node -e \"const fs=require('fs'); if(fs.existsSync('target/classes')) fs.cpSync('src/main/resources/static','target/classes/static',{recursive:true,force:true});\"",
+    "start": "npm --prefix frontend start",
+    "watch": "npm --prefix frontend run watch"
+  }
+}

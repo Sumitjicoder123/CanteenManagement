@@ -51,6 +51,24 @@ public class OrderService {
         this.couponService = couponService;
     }
 
+    private boolean orderRequiresOtp(Orders order) {
+        if (order == null) return false;
+        String type = order.getDeliveryType() != null ? order.getDeliveryType().toUpperCase() : "";
+        return "HOME_DELIVERY".equals(type) || "TAKEAWAY".equals(type) || order.isDelivery();
+    }
+
+    private String resolveOrGenerateOtp(Orders order) {
+        if (!orderRequiresOtp(order)) {
+            return null;
+        }
+        if (order.getOtp_verify() != null && !order.getOtp_verify().trim().isEmpty()) {
+            return order.getOtp_verify().trim();
+        }
+        // Fallback deterministic 4-digit OTP for any legacy TAKEAWAY/HOME_DELIVERY order missing otp_verify
+        long seed = order.getId() != null ? order.getId() : 1L;
+        return String.valueOf(1000 + (Math.abs(seed * 7919) % 9000));
+    }
+
     @Transactional
     public OrderDetailsResponseDTO placeOrder(OrderDetailsRequestDTO request, User user) {
         List<Integer> menuIds = request.getMenuIds();
@@ -80,9 +98,8 @@ public class OrderService {
         int randomToken = ThreadLocalRandom.current().nextInt(1000, 9999);
         order.setTokenNumber("TKN-" + randomToken);
 
-        // Generate 4-digit OTP ONLY for HOME_DELIVERY (not required for Dine-in or Takeaway)
-        boolean isHomeDelivery = "HOME_DELIVERY".equalsIgnoreCase(order.getDeliveryType()) || order.isDelivery();
-        if (isHomeDelivery) {
+        // Generate 4-digit OTP for both HOME_DELIVERY and TAKEAWAY
+        if (orderRequiresOtp(order)) {
             int randomOtp = ThreadLocalRandom.current().nextInt(1000, 9999);
             order.setOtp_verify(String.valueOf(randomOtp));
         } else {
@@ -295,24 +312,26 @@ public class OrderService {
         Orders order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
-        boolean isHomeDelivery = "HOME_DELIVERY".equalsIgnoreCase(order.getDeliveryType()) || order.isDelivery();
+        boolean requiresOtp = orderRequiresOtp(order);
+        String expectedOtp = resolveOrGenerateOtp(order);
 
-        // OTP verification is only strictly required for Home Delivery
-        if (isHomeDelivery) {
-            if (order.getOtp_verify() == null || otp == null || !order.getOtp_verify().trim().equals(otp.trim())) {
-                throw new BadRequestException("Invalid delivery handover OTP code. Customer OTP is required to complete home delivery.");
+        // OTP verification is strictly required for both HOME_DELIVERY and TAKEAWAY
+        if (requiresOtp) {
+            if (expectedOtp == null || otp == null || !expectedOtp.equals(otp.trim())) {
+                throw new BadRequestException("Invalid verification OTP code. Customer 4-digit OTP is required to complete " + order.getDeliveryType() + " handover.");
             }
         }
 
+        order.setOtp_verify(expectedOtp);
         order.setWaiter(staff);
         order.setOrder_status(Order_Status.Collected);
         order.setUpdatedAt(LocalDateTime.now());
 
         Orders saved = orderRepository.save(order);
         String staffTitle = staff != null ? (staff.getName() + " (" + staff.getRole() + ")") : "Staff";
-        String remark = isHomeDelivery ?
-                "Home delivery handover verified with customer OTP and completed" :
-                ("Order served directly to " + (order.getTableNumber() != null ? "Table " + order.getTableNumber() : "customer at counter"));
+        String remark = requiresOtp ?
+                (order.getDeliveryType() + " handover verified with customer OTP and completed") :
+                ("Order served directly to " + (order.getTableNumber() != null ? "Table " + order.getTableNumber() : "customer at table"));
         addTrackEvent(saved, Order_Status.Collected, staffTitle, remark);
 
         return mapToDto(saved);
@@ -325,10 +344,26 @@ public class OrderService {
     }
 
     public OrderDetailsResponseDTO getOrderByToken(String token) {
-        Orders order = orderRepository.findByTokenNumber(token)
-                .or(() -> orderRepository.findBytokenNumber(token))
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with token: " + token));
-        return mapToDto(order);
+        if (token == null || token.trim().isEmpty()) {
+            throw new BadRequestException("Token is required");
+        }
+        String cleaned = token.trim().replace("#", "").trim();
+        String prefixed = cleaned.toUpperCase().startsWith("TKN-") ? cleaned.toUpperCase() : "TKN-" + cleaned;
+
+        List<Orders> matches = orderRepository.findByTokenFlexible(cleaned, prefixed);
+        if (!matches.isEmpty()) {
+            return mapToDto(matches.get(0));
+        }
+
+        // Also allow numeric order ID lookup if someone enters order ID
+        if (cleaned.matches("\\d+")) {
+            Optional<Orders> byId = orderRepository.findById(Long.parseLong(cleaned));
+            if (byId.isPresent()) {
+                return mapToDto(byId.get());
+            }
+        }
+
+        throw new ResourceNotFoundException("Order not found with token: " + token);
     }
 
     public List<OrderDetailsResponseDTO> getUserOrders(String phoneNumber) {
@@ -344,7 +379,9 @@ public class OrderService {
     }
 
     public List<OrderDetailsResponseDTO> getKitchenOrders() {
-        return orderRepository.findKitchenOrdersWithItems(Order_Status.Placed, Order_Status.Preparing).stream()
+        // Only show current active orders placed within the last 30 minutes (excludes old/abandoned previous orders)
+        LocalDateTime since = LocalDateTime.now().minusMinutes(30);
+        return orderRepository.findKitchenOrdersWithItems(Order_Status.Placed, Order_Status.Preparing, since).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
@@ -417,7 +454,7 @@ public class OrderService {
                 .deliveryAddress(o.getDeliveryAddress())
                 .tableNumber(o.getTableNumber())
                 .paid(o.getPaid())
-                .otp_verify(o.getOtp_verify())
+                .otp_verify(resolveOrGenerateOtp(o))
                 .chefName(o.getCheff() != null ? o.getCheff().getName() : null)
                 .waiterName(o.getWaiter() != null ? o.getWaiter().getName() : null)
                 .couponCode(o.getCoupon() != null ? o.getCoupon().getCouponCode() : null)

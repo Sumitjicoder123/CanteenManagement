@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,6 +13,13 @@ import java.util.Optional;
 public interface OrderDetailsRepository extends JpaRepository<Orders, Long> {
     Optional<Orders> findByTokenNumber(String tokenNumber);
     Optional<Orders> findBytokenNumber(String tokenNumber);
+
+    @Query("SELECT DISTINCT o FROM Orders o LEFT JOIN FETCH o.orderItems " +
+           "WHERE UPPER(o.tokenNumber) = UPPER(:exactToken) " +
+           "OR UPPER(o.tokenNumber) = UPPER(:prefixedToken) " +
+           "ORDER BY o.createdAt DESC")
+    List<Orders> findByTokenFlexible(@Param("exactToken") String exactToken,
+                                     @Param("prefixedToken") String prefixedToken);
 
     List<Orders> findByUser_PhoneNumberOrderByCreatedAtDesc(String phoneNumber);
     List<Orders> findByOrderByCreatedAtDesc();
@@ -23,10 +31,16 @@ public interface OrderDetailsRepository extends JpaRepository<Orders, Long> {
     @Query("SELECT DISTINCT o FROM Orders o LEFT JOIN FETCH o.orderItems ORDER BY o.createdAt DESC")
     List<Orders> findAllOrdersWithItems();
 
-    @Query("SELECT DISTINCT o FROM Orders o LEFT JOIN FETCH o.orderItems WHERE o.order_status IN (:s1, :s2) ORDER BY o.createdAt ASC")
-    List<Orders> findKitchenOrdersWithItems(@Param("s1") Order_Status s1, @Param("s2") Order_Status s2);
+    @Query("SELECT DISTINCT o FROM Orders o LEFT JOIN FETCH o.orderItems " +
+           "WHERE o.order_status IN (:s1, :s2) AND o.refund_status = false AND o.createdAt >= :since " +
+           "ORDER BY o.createdAt DESC")
+    List<Orders> findKitchenOrdersWithItems(@Param("s1") Order_Status s1,
+                                            @Param("s2") Order_Status s2,
+                                            @Param("since") LocalDateTime since);
 
-    @Query("SELECT DISTINCT o FROM Orders o LEFT JOIN FETCH o.orderItems WHERE o.order_status = :s ORDER BY o.createdAt ASC")
+    @Query("SELECT DISTINCT o FROM Orders o LEFT JOIN FETCH o.orderItems " +
+           "WHERE o.order_status = :s AND o.refund_status = false " +
+           "ORDER BY o.createdAt DESC")
     List<Orders> findReadyOrdersWithItems(@Param("s") Order_Status s);
 
     @Query("SELECT o FROM Orders o WHERE o.order_status = :status ORDER BY o.createdAt ASC")

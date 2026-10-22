@@ -3,7 +3,9 @@ package com.example.Ordering.menu;
 import com.example.Ordering.category.Category;
 import com.example.Ordering.category.CategoryRepository;
 import com.example.Ordering.exception.ResourceNotFoundException;
+import com.example.Ordering.menuOrder.MenuOrderRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -14,10 +16,14 @@ public class MenuService {
 
     private final MenuRepository menuRepository;
     private final CategoryRepository categoryRepository;
+    private final MenuOrderRepository menuOrderRepository;
 
-    public MenuService(MenuRepository menuRepository, CategoryRepository categoryRepository) {
+    public MenuService(MenuRepository menuRepository,
+                       CategoryRepository categoryRepository,
+                       MenuOrderRepository menuOrderRepository) {
         this.menuRepository = menuRepository;
         this.categoryRepository = categoryRepository;
+        this.menuOrderRepository = menuOrderRepository;
     }
 
     public MenuResponseDTO createMenu(MenuRequestDTO request) {
@@ -94,10 +100,12 @@ public class MenuService {
         return mapToDto(updated);
     }
 
+    @Transactional
     public void deleteMenu(Integer id) {
         if (!menuRepository.existsById(id)) {
             throw new ResourceNotFoundException("Menu item not found with id: " + id);
         }
+        menuOrderRepository.unlinkMenuFromOrderItems(id);
         menuRepository.deleteById(id);
     }
 

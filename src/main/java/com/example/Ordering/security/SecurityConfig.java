@@ -40,15 +40,16 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // Public Static Web Resources & Frontend
-                        .requestMatchers("/", "/index.html", "/favicon.ico", "/static/**", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
+                        // Public Static Web Resources & Angular Frontend
+                        .requestMatchers("/", "/index.html", "/favicon.ico", "/*.js", "/*.css", "/*.map", "/assets/**", "/static/**", "/css/**", "/js/**", "/images/**", "/uploads/**").permitAll()
                         // Public Auth Endpoints & Uploads
                         .requestMatchers("/api/auth/**", "/api/upload/**").permitAll()
-                        // Public Read-Only Menu, Category & Tables
+                        // Public Read-Only Menu, Category, Tables & Active Coupons
                         .requestMatchers(HttpMethod.GET, "/v1/api/category/**", "/api/categories/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/v1/api/menu/**", "/api/menu/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/tables/**").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/project/**", "/api/feedback/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/coupons/active", "/api/project/**", "/api/feedback/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/project/contact", "/api/feedback").permitAll()
                         .requestMatchers("/api/coupons/validate").permitAll()
                         // Public order tracking by token/id for user convenience
                         .requestMatchers(HttpMethod.GET, "/api/orders/*/track", "/api/orders/track/*").permitAll()

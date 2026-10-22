@@ -1,0 +1,1837 @@
+<!-- TOP PROGRESS BAR -->
+<div
+  id="topProgressBar"
+  [style.width]="isLoading ? '75%' : '0%'"
+  [style.opacity]="isLoading ? '1' : '0'"
+  class="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 z-[9999] pointer-events-none">
+</div>
+
+<!-- TOP PROMO BANNER -->
+<div class="bg-gradient-to-r from-amber-800 via-amber-700 to-orange-700 text-white text-xs py-2 px-4 text-center font-medium flex items-center justify-center gap-2 shadow-xs">
+  <i data-lucide="sparkles" class="w-3.5 h-3.5 flex-shrink-0 animate-pulse text-amber-300"></i>
+  <span class="truncate">
+    Save 20% with code <b class="bg-white/20 px-1.5 py-0.5 rounded font-mono font-bold tracking-wide">WELCOME20</b>
+    or ₹50 OFF with <b class="bg-white/20 px-1.5 py-0.5 rounded font-mono font-bold tracking-wide">FLAT50</b>
+  </span>
+</div>
+
+<!-- MAIN NAVIGATION HEADER -->
+<header class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-xs">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between gap-2 sm:gap-4 py-3">
+    
+    <!-- Brand Logo -->
+    <div class="flex items-center gap-2.5 sm:gap-3 cursor-pointer select-none" (click)="switchTab('menu')">
+      <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-amber-600 to-orange-500 flex items-center justify-center text-white shadow-md shadow-orange-500/20 flex-shrink-0">
+        <i data-lucide="utensils-crossed" class="w-5 h-5 sm:w-6 sm:h-6"></i>
+      </div>
+      <div>
+        <span class="text-lg sm:text-xl font-bold tracking-tight text-slate-900 font-serif leading-none">Grand Royale</span>
+        <span class="text-[9px] sm:text-[10px] block text-amber-700 font-bold tracking-wider uppercase mt-0.5">Canteen Hub</span>
+      </div>
+    </div>
+
+    <!-- Real-Time Desktop Search Bar -->
+    <div class="hidden lg:flex flex-1 max-w-sm xl:max-w-md relative mx-2">
+      <i data-lucide="search" class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+      <input
+        type="text"
+        [(ngModel)]="searchQuery"
+        placeholder="Search dishes, snacks, drinks..."
+        class="w-full pl-10 pr-9 py-2 bg-slate-100 hover:bg-slate-150 focus:bg-white border border-slate-200 rounded-full text-xs focus:outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 transition-all" />
+      <button
+        *ngIf="searchQuery"
+        (click)="searchQuery = ''"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600">
+        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+      </button>
+    </div>
+
+    <!-- Header Action Items -->
+    <div class="flex items-center gap-2 sm:gap-2.5">
+      
+      <!-- Table Booking Quick Action (Role Checked: visible for Guest, USER, ADMIN) -->
+      <button
+        *ngIf="!user || user.role === 'USER' || user.role === 'ADMIN'"
+        (click)="openBookingModal()"
+        class="hidden md:flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold text-amber-800 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition">
+        <i data-lucide="calendar" class="w-4 h-4 text-amber-700"></i>
+        <span>Book Table</span>
+      </button>
+
+      <!-- Admin Only Shortcuts: Strictly hidden for users/staff -->
+      <div *ngIf="user?.role === 'ADMIN'" class="flex items-center gap-1.5">
+        <button
+          (click)="openAddDishModal()"
+          class="flex items-center gap-1 px-3 py-1.5 sm:py-2 rounded-full text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition shadow-xs">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+          <span class="hidden sm:inline">Add Dish</span>
+        </button>
+        <button
+          (click)="openAddCategoryModal()"
+          class="flex items-center gap-1 px-3 py-1.5 sm:py-2 rounded-full text-xs font-bold text-orange-900 bg-orange-100 hover:bg-orange-200 border border-orange-200 transition">
+          <i data-lucide="folder-plus" class="w-3.5 h-3.5 text-orange-600"></i>
+          <span class="hidden sm:inline">Add Category</span>
+        </button>
+      </div>
+
+      <!-- Cart Button (Visible to Customers, Guests & Admin) -->
+      <button
+        *ngIf="!user || user.role === 'USER' || user.role === 'ADMIN'"
+        (click)="isCartOpen = true"
+        class="relative p-2 sm:p-2.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 transition"
+        title="Shopping Cart">
+        <i data-lucide="shopping-bag" class="w-4 h-4 sm:w-5 sm:h-5"></i>
+        <span
+          *ngIf="totalCartItems > 0"
+          class="absolute -top-1 -right-1 w-5 h-5 bg-amber-600 text-white rounded-full text-[10px] font-extrabold flex items-center justify-center border-2 border-white shadow-xs">
+          {{ totalCartItems }}
+        </span>
+      </button>
+
+      <!-- User Authentication & Profile Pill -->
+      <div>
+        <button
+          *ngIf="!user"
+          (click)="openAuthModal('login')"
+          class="px-3.5 sm:px-4 py-2 rounded-full bg-slate-900 hover:bg-black text-white text-xs font-semibold transition flex items-center gap-1.5 shadow-xs">
+          <i data-lucide="log-in" class="w-4 h-4"></i>
+          <span>Sign In</span>
+        </button>
+
+        <div
+          *ngIf="user"
+          class="flex items-center gap-1.5 sm:gap-2 bg-slate-100/90 pl-2.5 sm:pl-3 pr-1.5 py-1 rounded-full border border-slate-200">
+          <span
+            class="w-2 h-2 rounded-full"
+            [ngClass]="{
+              'bg-purple-500': user.role === 'ADMIN',
+              'bg-orange-500': user.role === 'CHEF',
+              'bg-indigo-500': user.role === 'WAITER',
+              'bg-emerald-500': user.role === 'USER'
+            }">
+          </span>
+          <span class="text-xs font-bold text-slate-800">{{ user.name.split(' ')[0] }}</span>
+          <span class="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600">
+            {{ user.role }}
+          </span>
+          <button
+            (click)="logout()"
+            class="p-1.5 rounded-full hover:bg-rose-100 text-slate-500 hover:text-rose-600 transition"
+            title="Sign Out">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- ROLE-AWARE NAVIGATION TABS & MOBILE SEARCH -->
+  <div class="border-t border-slate-100 bg-slate-50/90 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-stretch sm:items-center justify-between py-2 gap-2 sm:gap-4">
+      
+      <!-- Navigation Buttons -->
+      <div class="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1 sm:pb-0">
+        <!-- Customer & Guest Tabs -->
+        <button
+          (click)="switchTab('menu')"
+          [ngClass]="activeTab === 'menu' ? 'bg-amber-600 text-white font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-medium'"
+          class="px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 flex-shrink-0">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i> Menu
+        </button>
+
+        <button
+          *ngIf="!user || user.role === 'USER' || user.role === 'ADMIN'"
+          (click)="switchTab('orders')"
+          [ngClass]="activeTab === 'orders' ? 'bg-amber-600 text-white font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-medium'"
+          class="px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 flex-shrink-0">
+          <i data-lucide="clock" class="w-3.5 h-3.5"></i> My Orders
+          <span *ngIf="activeUserOrders.length > 0" class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+        </button>
+
+        <button
+          *ngIf="!user || user.role === 'USER' || user.role === 'ADMIN'"
+          (click)="switchTab('bookings')"
+          [ngClass]="activeTab === 'bookings' ? 'bg-amber-600 text-white font-semibold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-200/60 font-medium'"
+          class="px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 flex-shrink-0">
+          <i data-lucide="calendar-check" class="w-3.5 h-3.5"></i> Bookings & History
+        </button>
+
+        <!-- Staff & Admin Exclusive Tabs (Strictly hidden for customers & guests) -->
+        <button
+          *ngIf="user?.role === 'CHEF' || user?.role === 'ADMIN'"
+          (click)="switchTab('kitchen')"
+          [ngClass]="activeTab === 'kitchen' ? 'bg-amber-600 text-white font-semibold shadow-xs' : 'bg-orange-100 text-orange-800 border border-orange-200 hover:bg-orange-200 font-semibold'"
+          class="px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 flex-shrink-0">
+          <i data-lucide="flame" class="w-3.5 h-3.5"></i> Kitchen KDS
+        </button>
+
+        <button
+          *ngIf="user?.role === 'WAITER' || user?.role === 'ADMIN'"
+          (click)="switchTab('waiter')"
+          [ngClass]="activeTab === 'waiter' ? 'bg-amber-600 text-white font-semibold shadow-xs' : 'bg-indigo-100 text-indigo-800 border border-indigo-200 hover:bg-indigo-200 font-semibold'"
+          class="px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 flex-shrink-0">
+          <i data-lucide="concierge-bell" class="w-3.5 h-3.5"></i> Waiter Desk
+        </button>
+
+        <button
+          *ngIf="user?.role === 'ADMIN'"
+          (click)="switchTab('admin')"
+          [ngClass]="activeTab === 'admin' ? 'bg-amber-600 text-white font-semibold shadow-xs' : 'bg-purple-100 text-purple-800 border border-purple-200 hover:bg-purple-200 font-semibold'"
+          class="px-3 py-1.5 rounded-lg text-xs transition flex items-center gap-1.5 flex-shrink-0">
+          <i data-lucide="layout-dashboard" class="w-3.5 h-3.5"></i> Admin Control Hub
+        </button>
+      </div>
+
+      <!-- Mobile / Search & Quick Track -->
+      <div class="flex items-center gap-1.5 justify-between sm:justify-end">
+        <div class="lg:hidden flex-1 relative mr-1">
+          <input
+            type="text"
+            [(ngModel)]="searchQuery"
+            placeholder="Search dishes..."
+            class="w-full pl-7 pr-3 py-1 bg-white border border-slate-200 rounded-lg text-xs focus:outline-none focus:border-amber-500" />
+          <i data-lucide="search" class="w-3 h-3 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        </div>
+        <div class="flex items-center gap-1 flex-shrink-0">
+          <input
+            type="text"
+            [(ngModel)]="trackTokenQuery"
+            (keyup.enter)="trackOrderByToken()"
+            placeholder="Token # (e.g. TKN-1001)"
+            class="text-xs px-2.5 py-1 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-amber-500 w-32 sm:w-40 font-mono" />
+          <button
+            (click)="trackOrderByToken()"
+            class="text-xs bg-slate-900 text-white px-2.5 py-1 rounded-lg hover:bg-black font-semibold transition flex items-center gap-1 shadow-xs">
+            <i data-lucide="search" class="w-3 h-3"></i> Track
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</header>
+
+<!-- MAIN CONTAINER -->
+<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-6">
+
+  <!-- ========================================== -->
+  <!-- VIEW 1: MENU & ORDERING                    -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'menu'" class="space-y-6 sm:space-y-8">
+    
+    <!-- HERO BANNER -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-r from-stone-950 via-amber-950 to-orange-950 text-white p-6 sm:p-10 shadow-xl border border-amber-900/30">
+      <div class="relative z-10 max-w-2xl space-y-3">
+        <span class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[11px] sm:text-xs font-semibold border border-amber-500/30">
+          <i data-lucide="sparkles" class="w-3.5 h-3.5 text-amber-400"></i> Contactless Table Ordering • Lightning Fast
+        </span>
+        <h1 class="text-2xl sm:text-4xl lg:text-5xl font-bold font-serif leading-tight">Authentic Flavors, Seamless Dining.</h1>
+        <p class="text-amber-100/80 text-xs sm:text-sm">Enjoy direct contactless table dining, rapid takeaway pickup, or reserve your table in advance.</p>
+        <div class="flex flex-wrap gap-2.5 pt-1">
+          <a href="#menuGrid" class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition shadow-sm flex items-center gap-1.5">
+            <i data-lucide="utensils" class="w-3.5 h-3.5"></i> Browse Menu
+          </a>
+          <button (click)="openBookingModal()" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-bold text-xs uppercase tracking-wider transition flex items-center gap-1.5">
+            <i data-lucide="calendar" class="w-3.5 h-3.5"></i> Reserve Table (15m - 2h)
+          </button>
+        </div>
+      </div>
+      <div class="absolute -right-16 -bottom-16 w-80 h-80 rounded-full bg-amber-500/10 blur-3xl pointer-events-none"></div>
+    </div>
+
+    <!-- CATEGORIES BAR -->
+    <div>
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <h2 class="text-lg sm:text-xl font-bold text-slate-900 font-serif">Explore Categories</h2>
+          <p class="text-xs text-slate-500">Pick a category to filter your favorite offerings</p>
+        </div>
+        <button (click)="selectedCategoryId = null" class="text-xs text-amber-700 hover:underline font-bold">Show All</button>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+        <div
+          *ngFor="let cat of categories"
+          (click)="selectedCategoryId = (selectedCategoryId === cat.id ? null : cat.id)"
+          [ngClass]="selectedCategoryId === cat.id ? 'border-amber-600 ring-2 ring-amber-500/30 shadow-md' : 'border-slate-200 bg-white hover:border-amber-300 hover:shadow-xs'"
+          class="cursor-pointer group relative overflow-hidden rounded-2xl border transition flex flex-col">
+          <div class="relative h-20 w-full overflow-hidden bg-slate-100">
+            <img
+              [src]="cat.imageUrl || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500'"
+              [alt]="cat.name"
+              class="h-full w-full object-cover group-hover:scale-105 transition duration-300" />
+            <!-- Admin Edit/Delete Category Overlay -->
+            <div *ngIf="user?.role === 'ADMIN'" class="absolute top-1.5 right-1.5 flex items-center gap-1 z-10">
+              <button
+                type="button"
+                (click)="$event.stopPropagation(); openEditCategoryModal(cat)"
+                title="Edit Category"
+                class="p-1 rounded-lg bg-white/90 hover:bg-amber-600 text-slate-700 hover:text-white shadow-xs transition">
+                <i data-lucide="pencil" class="w-3 h-3"></i>
+              </button>
+              <button
+                type="button"
+                (click)="$event.stopPropagation(); deleteCategory(cat)"
+                title="Delete Category"
+                class="p-1 rounded-lg bg-white/90 hover:bg-rose-600 text-rose-600 hover:text-white shadow-xs transition">
+                <i data-lucide="trash-2" class="w-3 h-3"></i>
+              </button>
+            </div>
+          </div>
+          <div class="p-2 sm:p-2.5 flex-1 flex flex-col justify-between">
+            <h4 class="font-bold text-xs text-slate-800 truncate">{{ cat.name }}</h4>
+            <span class="text-[10px] text-slate-500">{{ getCategoryDishCount(cat.id) }} items</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISHES GRID SECTION -->
+    <div id="menuGrid" class="space-y-4">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-200">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-slate-900 font-serif">{{ selectedCategoryName }}</h2>
+          <p class="text-xs text-slate-500">Showing {{ filteredMenus.length }} culinary items</p>
+        </div>
+        
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Pure Veg Toggle -->
+          <label class="flex items-center gap-2 cursor-pointer text-xs font-semibold text-slate-700 bg-white px-3 py-1.5 sm:py-2 rounded-full border border-slate-200 shadow-xs hover:border-slate-300 transition">
+            <input type="checkbox" [(ngModel)]="vegOnly" class="rounded text-emerald-600 focus:ring-emerald-500" />
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+            <span>Pure Veg Only</span>
+          </label>
+          <button (click)="refreshMenuAndCategories()" class="p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition" title="Live Refresh Menu">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Empty Filter State -->
+      <div *ngIf="filteredMenus.length === 0" class="py-16 text-center text-slate-400 space-y-2 bg-white rounded-2xl border border-slate-100">
+        <i data-lucide="utensils" class="w-8 h-8 mx-auto text-slate-300"></i>
+        <p class="text-sm">No dishes match your selected filter.</p>
+        <button (click)="selectedCategoryId = null; vegOnly = false; searchQuery = ''" class="text-xs text-amber-700 font-bold hover:underline">
+          Show all dishes
+        </button>
+      </div>
+
+      <!-- Food Cards Grid (Fully Responsive) -->
+      <div *ngIf="filteredMenus.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5">
+        <div
+          *ngFor="let dish of filteredMenus"
+          class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs hover:shadow-md transition flex flex-col group">
+          <div class="relative h-40 sm:h-44 w-full overflow-hidden bg-slate-100">
+            <img
+              [src]="dish.imageUrl || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500'"
+              [alt]="dish.name"
+              class="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
+            <span
+              [ngClass]="dish.veg ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-rose-100 text-rose-800 border border-rose-300'"
+              class="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 shadow-xs">
+              <span [ngClass]="dish.veg ? 'bg-emerald-600' : 'bg-rose-600'" class="w-1.5 h-1.5 rounded-full"></span>
+              {{ dish.veg ? 'Pure Veg' : 'Non-Veg' }}
+            </span>
+            <span class="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-black/60 backdrop-blur-xs text-white text-[10px] font-medium flex items-center gap-1">
+              <i data-lucide="clock" class="w-3 h-3 text-amber-400"></i> {{ dish.preparationTimeMinutes || 15 }}m
+            </span>
+            <!-- Admin Edit/Delete Dish Overlay -->
+            <div *ngIf="user?.role === 'ADMIN'" class="absolute top-2.5 right-2.5 flex items-center gap-1 z-10">
+              <button
+                type="button"
+                (click)="openEditDishModal(dish)"
+                title="Edit Dish"
+                class="p-1.5 rounded-lg bg-white/95 hover:bg-amber-600 text-slate-700 hover:text-white shadow-xs transition">
+                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+              </button>
+              <button
+                type="button"
+                (click)="deleteDish(dish)"
+                title="Delete Dish"
+                class="p-1.5 rounded-lg bg-white/95 hover:bg-rose-600 text-rose-600 hover:text-white shadow-xs transition">
+                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="p-3.5 sm:p-4 flex-1 flex flex-col justify-between">
+            <div>
+              <div class="flex justify-between items-start gap-2">
+                <h3 class="font-bold text-sm text-slate-900 font-serif leading-snug">{{ dish.name }}</h3>
+                <span class="font-extrabold text-sm text-amber-700 font-serif">₹{{ dish.price }}</span>
+              </div>
+              <p class="text-slate-500 text-xs mt-1 line-clamp-2">{{ dish.description || '' }}</p>
+            </div>
+
+            <div class="pt-3.5 mt-auto">
+              <div *ngIf="getCartQty(dish.menu_id) > 0" class="flex items-center justify-between bg-amber-50 border border-amber-200 rounded-xl px-2 py-1">
+                <button (click)="updateCartQty(dish.menu_id, -1)" class="w-7 h-7 rounded-lg bg-white text-amber-900 font-bold flex items-center justify-center hover:bg-amber-100 shadow-xs transition">-</button>
+                <span class="font-bold text-xs text-amber-950">{{ getCartQty(dish.menu_id) }} in Cart</span>
+                <button (click)="updateCartQty(dish.menu_id, 1)" class="w-7 h-7 rounded-lg bg-amber-600 text-white font-bold flex items-center justify-center hover:bg-amber-700 shadow-xs transition">+</button>
+              </div>
+
+              <button
+                *ngIf="getCartQty(dish.menu_id) === 0"
+                (click)="addToCart(dish)"
+                class="w-full py-2 bg-slate-900 hover:bg-amber-600 text-white rounded-xl text-xs font-semibold transition flex items-center justify-center gap-1.5 shadow-xs">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+                <span>Add to Order</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========================================== -->
+  <!-- VIEW 2: MY ORDERS (CURRENT + HISTORY TABS) -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'orders'" class="space-y-5">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900 font-serif">My Orders & Live Tracker</h2>
+        <p class="text-xs text-slate-500">View current active orders in preparation, verify OTP, or review completed history</p>
+      </div>
+      <button (click)="loadMyOrders()" class="px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition self-start sm:self-auto">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh Orders
+      </button>
+    </div>
+
+    <!-- Sub-Tab Navigation: Current Active vs Previous History -->
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-2">
+      <button
+        (click)="orderSubTab = 'active'"
+        [ngClass]="orderSubTab === 'active' ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+        class="px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
+        <span class="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
+        <span>Current Active Orders ({{ activeUserOrders.length }})</span>
+      </button>
+      <button
+        (click)="orderSubTab = 'history'"
+        [ngClass]="orderSubTab === 'history' ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+        class="px-4 py-2 rounded-xl text-xs flex items-center gap-1.5 transition">
+        <i data-lucide="history" class="w-3.5 h-3.5"></i>
+        <span>Previous History ({{ historyUserOrders.length }})</span>
+      </button>
+    </div>
+
+    <!-- Unauthenticated Prompt -->
+    <div *ngIf="!token" class="bg-white p-8 rounded-2xl border text-center space-y-3">
+      <p class="text-slate-500 text-xs">Please sign in to view your orders and live tracking.</p>
+      <button (click)="openAuthModal('login')" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold">Sign In</button>
+    </div>
+
+    <!-- Current Active Orders Container -->
+    <div *ngIf="token && orderSubTab === 'active'" class="space-y-4">
+      <div *ngIf="activeUserOrders.length === 0" class="bg-white p-10 rounded-2xl border border-slate-200 text-center space-y-3 shadow-xs">
+        <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mx-auto">
+          <i data-lucide="check-circle-2" class="w-6 h-6"></i>
+        </div>
+        <h4 class="font-bold text-slate-800 text-sm">No Active Orders In Progress</h4>
+        <p class="text-xs text-slate-500 max-w-sm mx-auto">You have no ongoing kitchen preparations. Explore our delicious menu to order!</p>
+        <button (click)="switchTab('menu')" class="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition shadow-xs">
+          Explore Specialties
+        </button>
+      </div>
+
+      <div
+        *ngFor="let o of activeUserOrders"
+        class="bg-white rounded-2xl border border-amber-200 p-5 shadow-xs space-y-4 hover:shadow-md transition">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-base font-serif text-slate-900">{{ o.token_number || ('Order #' + o.id) }}</span>
+              <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
+                {{ o.orderStatus }}
+              </span>
+            </div>
+            <span class="text-[11px] text-slate-400">
+              Placed: {{ (o.created_at || o.orderDate) | date: 'shortTime' }} • {{ o.deliveryType }}
+            </span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="font-extrabold text-lg text-amber-800 font-serif mr-1">₹{{ getOrderTotal(o) }}</span>
+            <button
+              (click)="billOrder = o"
+              class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 text-xs font-semibold transition flex items-center gap-1 shadow-xs">
+              <i data-lucide="receipt" class="w-3.5 h-3.5 text-slate-500"></i> Bill
+            </button>
+            <button
+              (click)="trackingOrder = o"
+              class="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition shadow-xs flex items-center gap-1">
+              <i data-lucide="activity" class="w-3.5 h-3.5"></i> Track
+            </button>
+          </div>
+        </div>
+
+        <!-- Home Delivery & Takeaway OTP vs Express Table Dining -->
+        <div
+          *ngIf="o.deliveryType === 'HOME_DELIVERY' || o.deliveryType === 'TAKEAWAY'"
+          class="bg-indigo-50/80 p-3 rounded-xl border border-indigo-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-indigo-700 block">
+              {{ o.deliveryType === 'TAKEAWAY' ? 'Takeaway Counter Pickup OTP' : 'Home Delivery Verification OTP' }}
+            </span>
+            <span class="text-indigo-900 text-[11px]">
+              {{ o.deliveryType === 'TAKEAWAY' ? 'Show this 4-digit OTP at the counter to collect your takeaway order' : 'Give this 4-digit code to delivery agent at your doorstep' }}
+            </span>
+          </div>
+          <span class="font-mono font-black text-indigo-950 text-base bg-white px-3 py-1 rounded-lg border border-indigo-200 shadow-xs tracking-wider">
+            {{ o.otp_verify || 'Pending' }}
+          </span>
+        </div>
+
+        <div
+          *ngIf="o.deliveryType !== 'HOME_DELIVERY' && o.deliveryType !== 'TAKEAWAY'"
+          class="bg-emerald-50/60 p-2.5 rounded-xl border border-emerald-200/80 flex items-center justify-between text-xs">
+          <span class="text-emerald-900 font-semibold text-[11px] flex items-center gap-1">
+            <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-600"></i>
+            {{ 'Direct Table Service: Table ' + (o.tableNumber || 'Assigned') + ' (No OTP required)' }}
+          </span>
+          <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-white text-emerald-800 border border-emerald-200">Express Dining</span>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100 text-xs">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Service Destination</span>
+            <span class="font-semibold text-slate-800 truncate block">
+              {{ o.tableNumber ? ('Table ' + o.tableNumber) : (o.deliveryAddress || 'Counter Pickup') }}
+            </span>
+          </div>
+          <div>
+            <span class="text-[10px] uppercase font-bold text-slate-400 block">Assigned Staff</span>
+            <span class="font-semibold text-slate-800 truncate block">
+              {{ o.chefName ? ('Chef ' + o.chefName) : 'In Kitchen Queue' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="space-y-1">
+          <span class="text-[11px] font-bold uppercase text-slate-400">Order Items:</span>
+          <div class="flex flex-wrap gap-1.5">
+            <span
+              *ngFor="let it of o.items"
+              class="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200 text-xs text-slate-700 font-medium">
+              {{ it.dishName }} <b class="text-amber-800">×{{ it.quantity }}</b>
+            </span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-1">
+          <button
+            (click)="cancelAndRefundOrder(o)"
+            class="text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline flex items-center gap-1 transition">
+            <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+            <span>Cancel Order & Instant Refund</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Previous History Orders Container -->
+    <div *ngIf="token && orderSubTab === 'history'" class="space-y-4">
+      <div *ngIf="historyUserOrders.length === 0" class="bg-white p-8 rounded-2xl border text-center text-slate-400 text-xs">
+        No completed or past orders found in history.
+      </div>
+
+      <div
+        *ngFor="let o of historyUserOrders"
+        class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:shadow-xs transition">
+        <div class="space-y-1.5">
+          <div class="flex items-center gap-2">
+            <span class="font-bold text-sm font-serif text-slate-900">{{ o.token_number || ('Order #' + o.id) }}</span>
+            <span
+              [ngClass]="o.refund_status ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'"
+              class="px-2 py-0.5 rounded-full text-[10px] font-bold">
+              {{ o.refund_status ? 'Refunded' : 'Delivered & Completed' }}
+            </span>
+            <span class="text-xs text-slate-400">• {{ (o.created_at || o.orderDate) | date: 'short' }}</span>
+          </div>
+          <p class="text-xs text-slate-600">
+            <span *ngFor="let it of o.items; let last = last">
+              {{ it.dishName }} (x{{ it.quantity }}){{ !last ? ', ' : '' }}
+            </span>
+          </p>
+          <div class="text-[11px] text-slate-400">
+            <span>Mode: <b>{{ o.deliveryType }}</b></span>
+            <span *ngIf="o.tableNumber"> • Table: <b>{{ o.tableNumber }}</b></span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
+          <span class="font-extrabold text-base text-slate-800 font-serif mr-1">₹{{ getOrderTotal(o) }}</span>
+          <button
+            (click)="billOrder = o"
+            class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition flex items-center gap-1 shadow-xs">
+            <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-500"></i> Print Bill
+          </button>
+          <button
+            (click)="reorderItems(o)"
+            class="px-3 py-1.5 rounded-xl border border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-900 text-xs font-bold transition flex items-center gap-1">
+            <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i> Re-Order
+          </button>
+          <button
+            (click)="trackingOrder = o"
+            class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-semibold transition">
+            History
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- VIEW 3: TABLE BOOKINGS & HISTORY           -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'bookings'" class="space-y-5">
+    
+    <!-- Header & Action -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900 font-serif">Table Reservations & Booking History</h2>
+        <p class="text-xs text-slate-500">Track active upcoming dining slots, view past reservations, or book a table</p>
+      </div>
+      <div class="flex items-center gap-2 self-start sm:self-auto">
+        <button (click)="loadMyBookings()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition" title="Refresh Bookings">
+          <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+        </button>
+        <button (click)="openBookingModal()" class="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-md shadow-amber-600/20">
+          <i data-lucide="plus" class="w-4 h-4"></i> Reserve Table
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Metrics Summary -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+        <span class="text-[11px] font-medium text-slate-500">Total Bookings</span>
+        <div class="text-2xl font-bold text-slate-900 mt-0.5">{{ bookingMetrics.total }}</div>
+      </div>
+      <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+        <span class="text-[11px] font-medium text-emerald-600">Upcoming / Active</span>
+        <div class="text-2xl font-bold text-emerald-600 mt-0.5">{{ bookingMetrics.active }}</div>
+      </div>
+      <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+        <span class="text-[11px] font-medium text-blue-600">Completed</span>
+        <div class="text-2xl font-bold text-blue-600 mt-0.5">{{ bookingMetrics.completed }}</div>
+      </div>
+      <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs">
+        <span class="text-[11px] font-medium text-rose-600">Cancelled</span>
+        <div class="text-2xl font-bold text-rose-600 mt-0.5">{{ bookingMetrics.cancelled }}</div>
+      </div>
+    </div>
+
+    <!-- Booking History Filter Tabs -->
+    <div class="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto custom-scrollbar">
+      <button
+        (click)="bookingFilter = 'all'"
+        [ngClass]="bookingFilter === 'all' ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+        class="px-3 py-1.5 rounded-lg text-xs transition flex-shrink-0">
+        All History
+      </button>
+      <button
+        (click)="bookingFilter = 'active'"
+        [ngClass]="bookingFilter === 'active' ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+        class="px-3 py-1.5 rounded-lg text-xs transition flex-shrink-0">
+        Upcoming / Active
+      </button>
+      <button
+        (click)="bookingFilter = 'completed'"
+        [ngClass]="bookingFilter === 'completed' ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+        class="px-3 py-1.5 rounded-lg text-xs transition flex-shrink-0">
+        Past Completed
+      </button>
+      <button
+        (click)="bookingFilter = 'cancelled'"
+        [ngClass]="bookingFilter === 'cancelled' ? 'bg-amber-600 text-white font-bold shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'"
+        class="px-3 py-1.5 rounded-lg text-xs transition flex-shrink-0">
+        Cancelled
+      </button>
+    </div>
+
+    <!-- Unauthenticated Prompt -->
+    <div *ngIf="!token" class="bg-white p-8 rounded-2xl border text-center text-slate-500 text-xs space-y-3">
+      <p>Please sign in to view your complete table reservation history.</p>
+      <button (click)="openAuthModal('login')" class="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-semibold">Sign In</button>
+    </div>
+
+    <!-- Empty Filtered Bookings -->
+    <div *ngIf="token && filteredUserBookings.length === 0" class="bg-white p-10 rounded-2xl border text-center text-slate-400 text-xs space-y-2">
+      <i data-lucide="calendar" class="w-8 h-8 mx-auto text-slate-300"></i>
+      <p>No reservations found under "{{ bookingFilter }}" history filter.</p>
+      <button (click)="openBookingModal()" class="text-xs text-amber-700 font-bold hover:underline">Reserve a table now</button>
+    </div>
+
+    <!-- Booking Cards Grid -->
+    <div *ngIf="token && filteredUserBookings.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div
+        *ngFor="let b of filteredUserBookings"
+        class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3.5 hover:shadow-md transition">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="text-[10px] uppercase font-bold text-amber-700 tracking-wider">Ref: #TB-{{ b.id }}</span>
+            <h4 class="font-bold text-base font-serif text-slate-900">{{ b.table?.tableNumber || 'Table' }}</h4>
+            <span class="text-[11px] text-slate-500">{{ b.table?.section || 'Indoor' }} • Max {{ b.table?.capacity || 4 }} Guests</span>
+          </div>
+          <span
+            *ngIf="b.status === 'CANCELLED'"
+            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-rose-100 text-rose-800">
+            Cancelled
+          </span>
+          <span
+            *ngIf="b.status !== 'CANCELLED' && isBookingUpcoming(b)"
+            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+            Confirmed & Active
+          </span>
+          <span
+            *ngIf="b.status !== 'CANCELLED' && !isBookingUpcoming(b)"
+            class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-100 text-blue-800">
+            Completed
+          </span>
+        </div>
+
+        <div class="text-xs text-slate-700 space-y-1.5 bg-slate-50 p-3 rounded-xl border border-slate-100">
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="calendar" class="w-3.5 h-3.5 text-amber-600"></i>
+            <span><b>Date:</b> {{ b.bookingDate }}</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="clock" class="w-3.5 h-3.5 text-amber-600"></i>
+            <span><b>Slot:</b> {{ b.startTime }} - {{ b.endTime }} ({{ b.durationMinutes }} mins)</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <i data-lucide="users" class="w-3.5 h-3.5 text-amber-600"></i>
+            <span><b>Party Size:</b> {{ b.guestCount }} Guests</span>
+          </div>
+          <div *ngIf="b.specialRequest" class="text-[11px] text-slate-500 pt-1 border-t border-slate-200 truncate">
+            <b>Special Note:</b> "{{ b.specialRequest }}"
+          </div>
+        </div>
+
+        <button
+          *ngIf="isBookingUpcoming(b)"
+          (click)="cancelBooking(b.id!)"
+          class="w-full py-2 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold transition flex items-center justify-center gap-1">
+          <i data-lucide="x" class="w-3.5 h-3.5"></i>
+          <span>Cancel Reservation</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- VIEW 4: CHEF KITCHEN DISPLAY (KDS)        -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'kitchen'" class="space-y-5">
+    <div class="flex items-center justify-between bg-orange-50 p-4 rounded-2xl border border-orange-200">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-orange-600 text-white flex items-center justify-center font-bold shadow-xs">
+          <i data-lucide="chef-hat" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-orange-950 font-serif">Kitchen Display System (KDS)</h2>
+          <p class="text-xs text-orange-700">Live current order queue. Auto-refreshing live every 3 seconds.</p>
+        </div>
+      </div>
+      <button (click)="loadKitchenOrders()" class="px-3 py-1.5 bg-orange-600 text-white rounded-lg text-xs font-bold hover:bg-orange-700 transition flex items-center gap-1.5 shadow-xs">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+      </button>
+    </div>
+
+    <div *ngIf="kitchenOrders.length === 0" class="bg-white p-8 rounded-2xl border text-center text-slate-400 text-xs">
+      No active kitchen orders. All clear!
+    </div>
+
+    <div *ngIf="kitchenOrders.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div
+        *ngFor="let o of kitchenOrders"
+        class="bg-white rounded-2xl border border-orange-200 p-5 shadow-xs space-y-3">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="text-xs font-extrabold text-orange-900 font-mono">{{ o.token_number }}</span>
+            <span class="text-[10px] text-slate-500 block">
+              {{ o.deliveryType }} • Location: <b>{{ o.tableNumber || o.deliveryAddress || 'Counter' }}</b>
+            </span>
+          </div>
+          <span
+            [ngClass]="o.orderStatus === 'Preparing' ? 'bg-orange-100 text-orange-800' : 'bg-amber-100 text-amber-800'"
+            class="px-2 py-0.5 rounded-full text-[10px] font-bold">
+            {{ o.orderStatus }}
+          </span>
+        </div>
+
+        <div class="bg-orange-50/50 p-3 rounded-xl border border-orange-100 space-y-1.5 text-xs">
+          <span class="text-[10px] uppercase font-bold text-orange-800">Dish Quantities:</span>
+          <div *ngFor="let it of o.items" class="flex justify-between font-semibold text-slate-800">
+            <span>{{ it.dishName }}</span>
+            <span class="px-2 py-0.5 rounded bg-white border border-orange-200 text-orange-950 font-bold">Qty: {{ it.quantity }}</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2 pt-1">
+          <button
+            *ngIf="o.orderStatus === 'Placed'"
+            (click)="chefAssignOrder(o.id)"
+            class="flex-1 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-xs">
+            <i data-lucide="play" class="w-3.5 h-3.5"></i> Start Preparing
+          </button>
+          <button
+            *ngIf="o.orderStatus !== 'Placed'"
+            (click)="chefMarkReady(o.id)"
+            class="flex-1 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1 shadow-xs">
+            <i data-lucide="check" class="w-3.5 h-3.5"></i> Mark Ready For Waiter
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- VIEW 5: WAITER SERVICE DESK                -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'waiter'" class="space-y-5">
+    <div class="flex items-center justify-between bg-indigo-50 p-4 rounded-2xl border border-indigo-200">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold shadow-xs">
+          <i data-lucide="concierge-bell" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h2 class="text-base sm:text-lg font-bold text-indigo-950 font-serif">Waiter & Delivery Service Desk</h2>
+          <p class="text-xs text-indigo-700">Orders ready from kitchen. Verify customer OTP to complete service.</p>
+        </div>
+      </div>
+      <button (click)="loadWaiterOrders()" class="px-3 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-bold hover:bg-indigo-700 transition flex items-center gap-1.5 shadow-xs">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+      </button>
+    </div>
+
+    <div *ngIf="waiterOrders.length === 0" class="bg-white p-8 rounded-2xl border text-center text-slate-400 text-xs">
+      No orders awaiting delivery.
+    </div>
+
+    <div *ngIf="waiterOrders.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div
+        *ngFor="let o of waiterOrders"
+        class="bg-white rounded-2xl border border-indigo-200 p-5 shadow-xs space-y-3">
+        <div class="flex justify-between items-start">
+          <div>
+            <span class="text-xs font-extrabold text-indigo-950 font-mono">{{ o.token_number }}</span>
+            <span class="text-[10px] text-slate-500 block">
+              {{ o.deliveryType }} • Location: <b>{{ o.tableNumber ? ('Table ' + o.tableNumber) : (o.deliveryAddress || 'Counter Pickup') }}</b>
+            </span>
+          </div>
+          <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-800">Ready to Serve</span>
+        </div>
+
+        <div class="bg-indigo-50/50 p-3 rounded-xl border border-indigo-100 text-xs space-y-1">
+          <div *ngFor="let it of o.items">• {{ it.dishName }} (x{{ it.quantity }})</div>
+        </div>
+
+        <div class="pt-1 flex items-center gap-2">
+          <button
+            (click)="billOrder = o"
+            title="Print Guest Bill"
+            class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs">
+            <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+          </button>
+          <div class="flex-1">
+            <button
+              *ngIf="o.deliveryType === 'HOME_DELIVERY'"
+              (click)="waiterVerifyOtp(o)"
+              class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs">
+              <i data-lucide="key" class="w-3.5 h-3.5"></i> Verify Doorstep Delivery OTP
+            </button>
+            <button
+              *ngIf="o.deliveryType === 'TAKEAWAY'"
+              (click)="waiterVerifyOtp(o)"
+              class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs">
+              <i data-lucide="key" class="w-3.5 h-3.5"></i> Verify Takeaway Pickup OTP
+            </button>
+            <button
+              *ngIf="o.deliveryType !== 'HOME_DELIVERY' && o.deliveryType !== 'TAKEAWAY'"
+              (click)="waiterServeDirect(o)"
+              class="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs">
+              <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i> Mark Served to Table {{ o.tableNumber || '' }} (No OTP required)
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- VIEW 6: ADMIN CONTROL CENTER               -->
+  <!-- ========================================== -->
+  <div *ngIf="activeTab === 'admin'" class="space-y-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900 font-serif">Admin Control Center</h2>
+        <p class="text-xs text-slate-500">Manage menu dishes, categories, coupons, orders and table reservations</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button (click)="openAddDishModal()" class="px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs transition">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i> Add Dish
+        </button>
+        <button (click)="openAddCategoryModal()" class="px-3.5 py-2 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs transition">
+          <i data-lucide="folder-plus" class="w-4 h-4"></i> Add Category
+        </button>
+        <button (click)="openAddCouponModal()" class="px-3.5 py-2 bg-slate-900 hover:bg-black text-white text-xs font-bold rounded-xl flex items-center gap-1.5 shadow-xs transition">
+          <i data-lucide="tag" class="w-4 h-4"></i> Add Coupon
+        </button>
+      </div>
+    </div>
+
+    <!-- Quick Metrics -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+        <span class="text-xs text-slate-500 font-medium">Total Orders</span>
+        <div class="text-2xl font-bold text-slate-900 mt-1">{{ adminOrders.length }}</div>
+      </div>
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+        <span class="text-xs text-slate-500 font-medium">Total Revenue</span>
+        <div class="text-2xl font-bold text-emerald-600 mt-1">₹{{ adminTotalSales }}</div>
+      </div>
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+        <span class="text-xs text-slate-500 font-medium">Menu Dishes</span>
+        <div class="text-2xl font-bold text-amber-600 mt-1">{{ menus.length }}</div>
+      </div>
+      <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-xs">
+        <span class="text-xs text-slate-500 font-medium">Total Bookings</span>
+        <div class="text-2xl font-bold text-purple-600 mt-1">{{ adminBookings.length }}</div>
+      </div>
+    </div>
+
+    <!-- All Customer Orders Table -->
+    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+        <h3 class="font-bold text-slate-800 font-serif text-sm">All Customer Orders</h3>
+        <button (click)="loadAdminDashboard()" class="text-xs text-amber-700 font-bold hover:underline flex items-center gap-1">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh Orders
+        </button>
+      </div>
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left text-xs text-slate-600 min-w-[700px]">
+          <thead class="bg-slate-50 text-slate-700 uppercase font-semibold text-[11px] border-b border-slate-200">
+            <tr>
+              <th class="px-4 py-3">Token</th>
+              <th class="px-4 py-3">Customer / Location</th>
+              <th class="px-4 py-3">Type</th>
+              <th class="px-4 py-3">Items</th>
+              <th class="px-4 py-3">Amount</th>
+              <th class="px-4 py-3">Status</th>
+              <th class="px-4 py-3">Staff</th>
+              <th class="px-4 py-3 text-right">Direct Action</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngFor="let o of adminOrders" class="hover:bg-slate-50 transition">
+              <td class="px-4 py-3 font-bold text-slate-900 font-mono">{{ o.token_number }}</td>
+              <td class="px-4 py-3">{{ o.tableNumber ? ('Table ' + o.tableNumber) : (o.deliveryAddress || 'Pickup') }}</td>
+              <td class="px-4 py-3">{{ o.deliveryType }}</td>
+              <td class="px-4 py-3 text-slate-500">{{ o.items ? o.items.length : 0 }} items</td>
+              <td class="px-4 py-3 font-bold text-slate-800 font-serif">₹{{ getOrderTotal(o) }}</td>
+              <td class="px-4 py-3">
+                <span
+                  [ngClass]="o.refund_status ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'"
+                  class="px-2 py-0.5 rounded-full text-[10px] font-bold">
+                  {{ o.refund_status ? 'Refunded' : o.orderStatus }}
+                </span>
+              </td>
+              <td class="px-4 py-3">{{ o.chefName ? ('Chef ' + o.chefName) : 'Queue' }}</td>
+              <td class="px-4 py-3 text-right space-x-1.5">
+                <button
+                  (click)="billOrder = o"
+                  class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 font-semibold text-[11px] transition inline-flex items-center gap-1">
+                  <i data-lucide="receipt" class="w-3 h-3"></i> Bill
+                </button>
+                <button
+                  *ngIf="!o.refund_status"
+                  (click)="cancelAndRefundOrder(o)"
+                  class="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-semibold text-[11px] transition">
+                  Refund
+                </button>
+                <span *ngIf="o.refund_status" class="text-slate-400 text-[11px]">Completed</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- All Table Reservations Table -->
+    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+        <h3 class="font-bold text-slate-800 font-serif text-sm">All Table Reservations</h3>
+        <button (click)="loadAdminDashboard()" class="text-xs text-amber-700 font-bold hover:underline flex items-center gap-1">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh Reservations
+        </button>
+      </div>
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left text-xs text-slate-600 min-w-[700px]">
+          <thead class="bg-slate-50 text-slate-700 uppercase font-semibold text-[11px] border-b border-slate-200">
+            <tr>
+              <th class="px-4 py-3">Booking Ref</th>
+              <th class="px-4 py-3">Table Details</th>
+              <th class="px-4 py-3">Date & Slot</th>
+              <th class="px-4 py-3">Guests</th>
+              <th class="px-4 py-3">Customer Phone</th>
+              <th class="px-4 py-3">Status</th>
+              <th class="px-4 py-3 text-right">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngFor="let b of adminBookings" class="hover:bg-slate-50 transition">
+              <td class="px-4 py-3 font-bold text-slate-900">#TB-{{ b.id }}</td>
+              <td class="px-4 py-3">{{ b.table?.tableNumber || 'Table' }} ({{ b.table?.section || 'Indoor' }})</td>
+              <td class="px-4 py-3">{{ b.bookingDate }} ({{ b.startTime }} - {{ b.endTime }})</td>
+              <td class="px-4 py-3">{{ b.guestCount }} Guests</td>
+              <td class="px-4 py-3 font-mono">{{ b.user?.phoneNumber || 'N/A' }}</td>
+              <td class="px-4 py-3">
+                <span
+                  [ngClass]="b.status === 'CONFIRMED' ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'"
+                  class="px-2 py-0.5 rounded-full text-[10px] font-bold">
+                  {{ b.status }}
+                </span>
+              </td>
+              <td class="px-4 py-3 text-right space-x-1">
+                <ng-container *ngIf="b.status === 'CONFIRMED'; else doneBookingTpl">
+                  <button
+                    (click)="completeBooking(b.id!)"
+                    class="px-2 py-1 rounded bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 font-semibold text-[11px] transition">
+                    Complete
+                  </button>
+                  <button
+                    (click)="cancelBooking(b.id!)"
+                    class="px-2 py-1 rounded bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-semibold text-[11px] transition">
+                    Cancel
+                  </button>
+                </ng-container>
+                <ng-template #doneBookingTpl>
+                  <span class="text-slate-400 text-[11px]">—</span>
+                </ng-template>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Manage Menu Dishes (Edit & Delete) -->
+    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+        <div>
+          <h3 class="font-bold text-slate-800 font-serif text-sm">Manage Menu Dishes ({{ menus.length }})</h3>
+          <p class="text-[11px] text-slate-500">Edit dish details, price, photo, availability or remove dishes</p>
+        </div>
+        <button (click)="openAddDishModal()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl flex items-center gap-1 shadow-xs transition">
+          <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> Add Dish
+        </button>
+      </div>
+      <div class="overflow-x-auto custom-scrollbar">
+        <table class="w-full text-left text-xs text-slate-600 min-w-[700px]">
+          <thead class="bg-slate-50 text-slate-700 uppercase font-semibold text-[11px] border-b border-slate-200">
+            <tr>
+              <th class="px-4 py-3">Dish</th>
+              <th class="px-4 py-3">Category</th>
+              <th class="px-4 py-3">Price</th>
+              <th class="px-4 py-3">Type</th>
+              <th class="px-4 py-3">Prep Time</th>
+              <th class="px-4 py-3">Availability</th>
+              <th class="px-4 py-3 text-right">Edit / Remove</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr *ngFor="let dish of menus" class="hover:bg-slate-50 transition">
+              <td class="px-4 py-3">
+                <div class="flex items-center gap-2.5">
+                  <img [src]="dish.imageUrl || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500'" class="w-9 h-9 rounded-lg object-cover border border-slate-200" />
+                  <div>
+                    <div class="font-bold text-slate-900">{{ dish.name }}</div>
+                    <div class="text-[10px] text-slate-400 truncate max-w-[200px]">{{ dish.description }}</div>
+                  </div>
+                </div>
+              </td>
+              <td class="px-4 py-3 font-medium">{{ dish.category_name || 'General' }}</td>
+              <td class="px-4 py-3 font-bold text-amber-800 font-serif">₹{{ dish.price }}</td>
+              <td class="px-4 py-3">
+                <span [ngClass]="dish.veg ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'" class="px-2 py-0.5 rounded-full text-[10px] font-bold">
+                  {{ dish.veg ? 'Pure Veg' : 'Non-Veg' }}
+                </span>
+              </td>
+              <td class="px-4 py-3">{{ dish.preparationTimeMinutes || 15 }} mins</td>
+              <td class="px-4 py-3">
+                <button
+                  (click)="toggleDishAvailability(dish)"
+                  [ngClass]="dish.available ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'"
+                  class="px-2.5 py-1 rounded-lg border text-[11px] font-bold transition">
+                  {{ dish.available ? 'Available' : 'Out of Stock' }}
+                </button>
+              </td>
+              <td class="px-4 py-3 text-right space-x-1.5">
+                <button
+                  (click)="openEditDishModal(dish)"
+                  class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 font-semibold text-[11px] transition inline-flex items-center gap-1">
+                  <i data-lucide="pencil" class="w-3 h-3"></i> Edit
+                </button>
+                <button
+                  (click)="deleteDish(dish)"
+                  class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-semibold text-[11px] transition inline-flex items-center gap-1">
+                  <i data-lucide="trash-2" class="w-3 h-3"></i> Remove
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Manage Menu Categories (Edit & Delete) -->
+    <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-xs">
+      <div class="px-5 py-3.5 border-b border-slate-200 flex items-center justify-between bg-slate-50/50">
+        <div>
+          <h3 class="font-bold text-slate-800 font-serif text-sm">Manage Menu Categories ({{ categories.length }})</h3>
+          <p class="text-[11px] text-slate-500">Edit category names, descriptions, photos or remove categories</p>
+        </div>
+        <button (click)="openAddCategoryModal()" class="px-3 py-1.5 bg-orange-600 hover:bg-orange-700 text-white text-xs font-bold rounded-xl flex items-center gap-1 shadow-xs transition">
+          <i data-lucide="folder-plus" class="w-3.5 h-3.5"></i> Add Category
+        </button>
+      </div>
+      <div class="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div *ngFor="let cat of categories" class="flex items-center justify-between gap-3 p-3 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white transition">
+          <div class="flex items-center gap-3 min-w-0">
+            <img [src]="cat.imageUrl || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500'" class="w-11 h-11 rounded-xl object-cover border border-slate-200 flex-shrink-0" />
+            <div class="min-w-0">
+              <h4 class="font-bold text-xs text-slate-900 truncate">{{ cat.name }}</h4>
+              <span class="text-[10px] text-slate-500 block">{{ getCategoryDishCount(cat.id) }} dishes</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button
+              (click)="openEditCategoryModal(cat)"
+              class="px-2.5 py-1 rounded-lg bg-amber-50 text-amber-800 hover:bg-amber-100 border border-amber-200 font-semibold text-[11px] transition flex items-center gap-1">
+              <i data-lucide="pencil" class="w-3 h-3"></i> Edit
+            </button>
+            <button
+              (click)="deleteCategory(cat)"
+              class="px-2.5 py-1 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-semibold text-[11px] transition flex items-center gap-1">
+              <i data-lucide="trash-2" class="w-3 h-3"></i> Remove
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</main>
+
+<!-- ========================================== -->
+<!-- CART SLIDE-OVER DRAWER (RESPONSIVE)        -->
+<!-- ========================================== -->
+<div *ngIf="isCartOpen" class="fixed inset-0 z-50 overflow-hidden">
+  <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-xs transition-opacity" (click)="isCartOpen = false"></div>
+  <div class="fixed inset-y-0 right-0 max-w-full flex pl-6 sm:pl-10">
+    <div class="w-screen max-w-md bg-white shadow-2xl flex flex-col">
+      
+      <!-- Cart Header -->
+      <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50">
+        <div class="flex items-center gap-2">
+          <i data-lucide="shopping-cart" class="w-5 h-5 text-amber-600"></i>
+          <h3 class="font-bold text-slate-900 font-serif text-base sm:text-lg">Your Order Cart</h3>
+        </div>
+        <button (click)="isCartOpen = false" class="p-1.5 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-600 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Cart Items List -->
+      <div class="flex-1 overflow-y-auto px-5 py-4 divide-y divide-slate-100 custom-scrollbar">
+        <div *ngIf="cart.length === 0" class="text-center py-16 text-slate-400 text-xs">
+          Your dining cart is empty. Add delicious items to order!
+        </div>
+
+        <div *ngFor="let item of cart" class="py-3 flex items-center justify-between gap-3">
+          <img [src]="item.imageUrl || 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=500'" class="w-12 h-12 rounded-xl object-cover" />
+          <div class="flex-1 min-w-0">
+            <h4 class="font-bold text-xs text-slate-800 truncate">{{ item.name }}</h4>
+            <span class="text-[11px] text-slate-500">₹{{ item.price }} each</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button (click)="updateCartQty(item.menu_id, -1)" class="w-6 h-6 rounded-md bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-700 flex items-center justify-center">-</button>
+            <span class="font-bold text-xs w-5 text-center">{{ item.quantity }}</span>
+            <button (click)="updateCartQty(item.menu_id, 1)" class="w-6 h-6 rounded-md bg-amber-600 hover:bg-amber-700 text-xs font-bold text-white flex items-center justify-center">+</button>
+          </div>
+          <span class="font-bold text-xs text-slate-800 w-14 text-right font-serif">₹{{ item.price * item.quantity }}</span>
+        </div>
+      </div>
+
+      <!-- Cart Footer -->
+      <div class="p-5 bg-slate-50 border-t border-slate-200 space-y-3.5">
+        
+        <!-- Delivery Mode Selector -->
+        <div>
+          <label class="text-[10px] font-bold uppercase text-slate-500 tracking-wider block mb-1">Delivery Type</label>
+          <div class="grid grid-cols-3 gap-1.5">
+            <button
+              type="button"
+              (click)="deliveryType = 'DINE_IN'"
+              [ngClass]="deliveryType === 'DINE_IN' ? 'border-amber-600 bg-amber-50 text-amber-900' : 'border-slate-200 bg-white text-slate-700'"
+              class="p-2 rounded-xl border text-xs font-semibold text-center transition">
+              🍽️ Dine-in
+            </button>
+            <button
+              type="button"
+              (click)="deliveryType = 'TAKEAWAY'"
+              [ngClass]="deliveryType === 'TAKEAWAY' ? 'border-amber-600 bg-amber-50 text-amber-900' : 'border-slate-200 bg-white text-slate-700'"
+              class="p-2 rounded-xl border text-xs font-semibold text-center transition">
+              🥡 Takeaway
+            </button>
+            <button
+              type="button"
+              (click)="deliveryType = 'HOME_DELIVERY'"
+              [ngClass]="deliveryType === 'HOME_DELIVERY' ? 'border-amber-600 bg-amber-50 text-amber-900' : 'border-slate-200 bg-white text-slate-700'"
+              class="p-2 rounded-xl border text-xs font-semibold text-center transition">
+              🏠 Delivery
+            </button>
+          </div>
+        </div>
+
+        <!-- Table Number or Delivery Address -->
+        <div *ngIf="deliveryType === 'DINE_IN'">
+          <label class="text-[10px] font-bold uppercase text-slate-500 tracking-wider block mb-1">Table Number</label>
+          <input
+            type="text"
+            [(ngModel)]="tableNumber"
+            placeholder="e.g. Table 1"
+            class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-amber-500 focus:outline-none font-semibold" />
+        </div>
+        <div *ngIf="deliveryType === 'HOME_DELIVERY'">
+          <label class="text-[10px] font-bold uppercase text-slate-500 tracking-wider block mb-1">Delivery Address</label>
+          <textarea
+            [(ngModel)]="deliveryAddress"
+            placeholder="Flat/Room, Building, Campus Hostel"
+            rows="2"
+            class="w-full px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs focus:ring-1 focus:ring-amber-500 focus:outline-none"></textarea>
+        </div>
+        <div *ngIf="deliveryType === 'TAKEAWAY'" class="text-[11px] text-slate-500 bg-white p-2.5 rounded-lg border border-slate-200">
+          Collect from counter using your unique Order Token &amp; 4-digit Pickup OTP.
+        </div>
+
+        <!-- Coupon Code Input -->
+        <div>
+          <label class="text-[10px] font-bold uppercase text-slate-500 tracking-wider block mb-1">Discount Coupon</label>
+          <div class="flex gap-2">
+            <input
+              type="text"
+              [(ngModel)]="couponCodeInput"
+              placeholder="Promo code (e.g. WELCOME20)"
+              class="flex-1 px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs uppercase focus:outline-none focus:border-amber-500 font-bold" />
+            <button (click)="validateAndApplyCoupon()" class="px-3 py-1.5 bg-amber-700 hover:bg-amber-800 text-white rounded-lg text-xs font-bold transition">
+              Apply
+            </button>
+          </div>
+          <div *ngIf="couponMessage" [ngClass]="couponError ? 'text-rose-600' : 'text-emerald-600'" class="text-[11px] mt-1 font-semibold block">
+            {{ couponMessage }}
+          </div>
+        </div>
+
+        <!-- Price Summary -->
+        <div class="space-y-1 pt-2 border-t border-slate-200 text-xs">
+          <div class="flex justify-between text-slate-600">
+            <span>Subtotal</span>
+            <span>₹{{ cartSubtotal }}</span>
+          </div>
+          <div class="flex justify-between text-emerald-600 font-medium">
+            <span>Discount</span>
+            <span>-₹{{ cartDiscount }}</span>
+          </div>
+          <div class="flex justify-between text-slate-900 font-bold text-base pt-1.5 border-t border-slate-200">
+            <span>Total Payable</span>
+            <span class="text-amber-700 font-serif">₹{{ cartTotal }}</span>
+          </div>
+        </div>
+
+        <!-- Checkout Button -->
+        <button
+          (click)="submitOrder()"
+          [disabled]="isLoading"
+          class="w-full py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-bold rounded-xl text-sm transition shadow-lg shadow-orange-600/20 flex items-center justify-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4"></i>
+          <span>{{ isLoading ? 'Processing Order...' : 'Confirm Order & Direct Pay' }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- TABLE BOOKING MODAL (15m to 2h)            -->
+<!-- ========================================== -->
+<div *ngIf="isBookingModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs" (click)="isBookingModalOpen = false"></div>
+  <div class="relative bg-white rounded-3xl max-w-lg w-full p-5 sm:p-7 shadow-2xl z-10 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+    
+    <div class="flex items-center justify-between border-b pb-3">
+      <div>
+        <span class="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Dining Reservation</span>
+        <h3 class="text-xl font-bold font-serif text-slate-900">Book A Restaurant Table</h3>
+      </div>
+      <button (click)="isBookingModalOpen = false" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-400">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <div class="bg-amber-50 p-2.5 rounded-xl border border-amber-200 text-xs text-amber-900 flex items-center gap-2">
+      <i data-lucide="info" class="w-4 h-4 text-amber-600 flex-shrink-0"></i>
+      <span>Duration must be between <b>15 minutes</b> and <b>2 hours</b> with instant database overlap check.</span>
+    </div>
+
+    <form (ngSubmit)="submitTableBooking()" class="space-y-3.5 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Select Dining Table</label>
+        <select [(ngModel)]="bookingForm.tableId" name="tableId" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 font-semibold">
+          <option *ngFor="let t of tables" [ngValue]="t.id">
+            {{ t.tableNumber }} ({{ t.section }} • Capacity: {{ t.capacity }} Guests)
+          </option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Booking Date</label>
+          <input type="date" [(ngModel)]="bookingForm.bookingDate" name="bookingDate" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Number of Guests</label>
+          <input type="number" [(ngModel)]="bookingForm.guestCount" name="guestCount" min="1" max="10" required class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 font-semibold" />
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2.5">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Start Time</label>
+          <input type="time" [(ngModel)]="bookingForm.startTime" name="startTime" required (change)="updateBookingEndTime()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 font-semibold" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Duration Preset</label>
+          <select [(ngModel)]="bookingForm.durationPreset" name="durationPreset" (change)="updateBookingEndTime()" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 font-semibold">
+            <option [ngValue]="15">15 Minutes</option>
+            <option [ngValue]="30">30 Minutes</option>
+            <option [ngValue]="45">45 Minutes</option>
+            <option [ngValue]="60">1 Hour</option>
+            <option [ngValue]="90">1.5 Hours</option>
+            <option [ngValue]="120">2 Hours (Max)</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Calculated End Time</label>
+        <input type="time" [(ngModel)]="bookingForm.endTime" name="endTime" required class="w-full p-2.5 bg-slate-100 border border-slate-200 rounded-xl font-bold text-amber-900" readonly />
+      </div>
+
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Special Requests (Optional)</label>
+        <input type="text" [(ngModel)]="bookingForm.specialRequest" name="specialRequest" placeholder="e.g. Window side, birthday celebration, quiet spot" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500" />
+      </div>
+
+      <button type="submit" [disabled]="isLoading" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition shadow-lg shadow-amber-600/20 text-sm flex items-center justify-center gap-1.5">
+        <i data-lucide="calendar-check" class="w-4 h-4"></i>
+        <span>{{ isLoading ? 'Reserving Table...' : 'Confirm Reservation' }}</span>
+      </button>
+    </form>
+
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ORDER TRACKING & DETAILS MODAL             -->
+<!-- ========================================== -->
+<div *ngIf="trackingOrder" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs" (click)="trackingOrder = null"></div>
+  <div class="relative bg-white rounded-3xl max-w-lg w-full p-5 sm:p-7 shadow-2xl z-10 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+    
+    <div class="flex items-center justify-between border-b pb-3">
+      <div>
+        <span class="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Live Order Status</span>
+        <h3 class="text-xl sm:text-2xl font-bold font-serif text-slate-900">{{ trackingOrder.token_number || ('Order #' + trackingOrder.id) }}</h3>
+      </div>
+      <button (click)="trackingOrder = null" class="p-1.5 rounded-full hover:bg-slate-100 text-slate-400">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- OTP Card & Delivery Details -->
+    <div class="grid grid-cols-2 gap-2.5 p-3.5 bg-amber-50/70 border border-amber-200 rounded-2xl">
+      <div>
+        <span class="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Verification OTP</span>
+        <div class="text-xl font-extrabold text-amber-900 tracking-widest mt-0.5 font-mono">
+          {{ (trackingOrder.deliveryType === 'HOME_DELIVERY' || trackingOrder.deliveryType === 'TAKEAWAY') ? (trackingOrder.otp_verify || 'Pending') : 'Direct (Dine-In)' }}
+        </div>
+        <span class="text-[10px] text-amber-700">
+          {{ (trackingOrder.deliveryType === 'HOME_DELIVERY' || trackingOrder.deliveryType === 'TAKEAWAY') ? 'Show 4-digit OTP to staff for collection' : 'Served directly to your table' }}
+        </span>
+      </div>
+      <div>
+        <span class="text-[10px] uppercase font-bold text-amber-800 tracking-wider">Delivery Mode</span>
+        <div class="text-sm font-bold text-slate-900 mt-0.5">{{ trackingOrder.deliveryType || 'Dine-in' }}</div>
+        <span class="text-[10px] text-slate-600 truncate block">
+          {{ trackingOrder.tableNumber ? ('Table: ' + trackingOrder.tableNumber) : (trackingOrder.deliveryAddress || 'Counter Pickup') }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Preparation Staff Assignment -->
+    <div class="grid grid-cols-2 gap-2.5 text-xs">
+      <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+        <span class="text-[10px] text-slate-400 uppercase font-semibold">Preparing Chef</span>
+        <div class="font-bold text-slate-800 mt-0.5 truncate">{{ trackingOrder.chefName ? ('Chef ' + trackingOrder.chefName) : 'Kitchen Queue' }}</div>
+      </div>
+      <div class="p-2.5 bg-slate-50 rounded-xl border border-slate-100">
+        <span class="text-[10px] text-slate-400 uppercase font-semibold">Service Waiter</span>
+        <div class="font-bold text-slate-800 mt-0.5 truncate">{{ trackingOrder.waiterName ? ('Waiter ' + trackingOrder.waiterName) : 'Service on Hand' }}</div>
+      </div>
+    </div>
+
+    <!-- Step Progress Bar -->
+    <div>
+      <h4 class="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-2">Order Progress</h4>
+      <div class="grid grid-cols-4 gap-1.5 text-center text-[10px] sm:text-[11px] font-semibold">
+        <div
+          [ngClass]="getOrderStepIndex(trackingOrder.orderStatus) >= 0 ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold' : 'bg-slate-100 text-slate-400 border-slate-200'"
+          class="p-2 rounded-lg border">
+          <i data-lucide="check" class="w-3.5 h-3.5 mx-auto mb-1"></i> Placed
+        </div>
+        <div
+          [ngClass]="getOrderStepIndex(trackingOrder.orderStatus) >= 1 ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold' : 'bg-slate-100 text-slate-400 border-slate-200'"
+          class="p-2 rounded-lg border">
+          <i data-lucide="flame" class="w-3.5 h-3.5 mx-auto mb-1"></i> Preparing
+        </div>
+        <div
+          [ngClass]="getOrderStepIndex(trackingOrder.orderStatus) >= 2 ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold' : 'bg-slate-100 text-slate-400 border-slate-200'"
+          class="p-2 rounded-lg border">
+          <i data-lucide="bell" class="w-3.5 h-3.5 mx-auto mb-1"></i> Ready
+        </div>
+        <div
+          [ngClass]="getOrderStepIndex(trackingOrder.orderStatus) >= 3 ? 'bg-emerald-100 text-emerald-800 border-emerald-300 font-bold' : 'bg-slate-100 text-slate-400 border-slate-200'"
+          class="p-2 rounded-lg border">
+          <i data-lucide="smile" class="w-3.5 h-3.5 mx-auto mb-1"></i> Delivered
+        </div>
+      </div>
+    </div>
+
+    <!-- Itemized Dish Summary -->
+    <div>
+      <h4 class="text-[11px] font-bold uppercase text-slate-500 tracking-wider mb-1.5">Ordered Dishes</h4>
+      <div class="divide-y divide-slate-100 text-xs max-h-36 overflow-y-auto custom-scrollbar">
+        <div *ngFor="let it of trackingOrder.items" class="py-1.5 flex justify-between items-center text-xs">
+          <span>{{ it.dishName }} × <b>{{ it.quantity }}</b></span>
+          <span class="font-semibold text-slate-700 font-serif">₹{{ it.subTotal || (it.price * it.quantity) }}</span>
+        </div>
+      </div>
+      <div class="flex justify-between items-center pt-2.5 border-t text-sm font-bold text-slate-900 mt-2">
+        <span>Total Paid</span>
+        <span class="text-amber-700 font-serif">₹{{ getOrderTotal(trackingOrder) }}</span>
+      </div>
+    </div>
+
+    <!-- Direct Refund Action Button (Role/Eligibility Protected) -->
+    <div *ngIf="!trackingOrder.refund_status && trackingOrder.orderStatus !== 'Collected' && trackingOrder.orderStatus !== 'Refunded'" class="pt-2 border-t border-slate-100">
+      <button
+        (click)="cancelAndRefundOrder(trackingOrder)"
+        class="w-full py-2.5 rounded-xl border border-red-200 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold transition flex items-center justify-center gap-1.5">
+        <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+        <span>Direct Refund & Cancel Order</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- HOTEL BILL / INVOICE MODAL                 -->
+<!-- ========================================== -->
+<div *ngIf="billOrder" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs" (click)="billOrder = null"></div>
+  <div class="relative bg-white rounded-3xl max-w-md w-full shadow-2xl z-10 overflow-hidden border border-slate-200 max-h-[92vh] flex flex-col">
+    <div id="printableBillArea" class="p-6 bg-white space-y-4 text-slate-800 overflow-y-auto custom-scrollbar flex-1">
+      <!-- Hotel Header -->
+      <div class="text-center border-b border-dashed border-slate-300 pb-3 space-y-1">
+        <div class="flex items-center justify-center gap-1.5 text-amber-700">
+          <i data-lucide="utensils-crossed" class="w-5 h-5"></i>
+          <h3 class="text-lg font-black font-serif tracking-tight text-slate-900">GRAND ROYALE HOTEL</h3>
+        </div>
+        <p class="text-[11px] text-slate-500 font-medium">Fine Dining, Buffet & Doorstep Delivery</p>
+        <p class="text-[10px] text-slate-400 font-mono">GSTIN: 27AABCR1234F1Z8 • Ph: +91 98765 43210</p>
+        <div class="inline-block mt-1 px-3 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-700 font-mono uppercase tracking-widest">
+          TAX INVOICE / GUEST BILL
+        </div>
+      </div>
+
+      <!-- Order Meta -->
+      <div class="grid grid-cols-2 gap-2 text-xs border-b border-dashed border-slate-300 pb-3">
+        <div>
+          <span class="text-[10px] text-slate-400 block font-semibold uppercase">Token Number</span>
+          <span class="font-mono font-bold text-slate-900 text-sm">{{ billOrder.token_number }}</span>
+        </div>
+        <div class="text-right">
+          <span class="text-[10px] text-slate-400 block font-semibold uppercase">Date & Time</span>
+          <span class="text-slate-700 text-xs font-medium">{{ (billOrder.created_at || billOrder.orderDate) | date: 'short' }}</span>
+        </div>
+        <div>
+          <span class="text-[10px] text-slate-400 block font-semibold uppercase">Order Service Type</span>
+          <span class="font-bold text-amber-800 text-xs">{{ billOrder.deliveryType || 'DINE_IN' }}</span>
+        </div>
+        <div class="text-right">
+          <span class="text-[10px] text-slate-400 block font-semibold uppercase">Table / Destination</span>
+          <span class="font-bold text-slate-900 text-xs">{{ billOrder.tableNumber ? ('Table ' + billOrder.tableNumber) : (billOrder.deliveryAddress || 'Counter Pickup') }}</span>
+        </div>
+      </div>
+
+      <!-- Itemized Table -->
+      <div class="space-y-2 border-b border-dashed border-slate-300 pb-3">
+        <div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider pb-1">
+          <span>Dish Description</span>
+          <div class="flex gap-4">
+            <span>Qty × Rate</span>
+            <span>Total</span>
+          </div>
+        </div>
+        <div class="space-y-1.5 text-xs divide-y divide-slate-100">
+          <div *ngFor="let it of billOrder.items" class="flex justify-between items-center py-1">
+            <span class="font-medium text-slate-800">{{ it.dishName }}</span>
+            <div class="flex gap-4 font-mono text-slate-700">
+              <span class="text-slate-500">{{ it.quantity }} × ₹{{ it.price || (it.subTotal / it.quantity) }}</span>
+              <span class="font-semibold">₹{{ it.subTotal || (it.price * it.quantity) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calculations -->
+      <div class="space-y-1.5 text-xs">
+        <div class="flex justify-between text-slate-600">
+          <span>Subtotal:</span>
+          <span class="font-mono font-semibold">₹{{ getOrderTotal(billOrder) + (billOrder.discountAmount || 0) }}</span>
+        </div>
+        <div *ngIf="billOrder.discountAmount && billOrder.discountAmount > 0" class="flex justify-between text-emerald-600">
+          <span>Coupon Discount:</span>
+          <span class="font-mono font-semibold">-₹{{ billOrder.discountAmount }}</span>
+        </div>
+        <div class="flex justify-between text-slate-600">
+          <span>GST & Service Charge (5% incl.):</span>
+          <span class="font-mono font-semibold">Included</span>
+        </div>
+        <div class="flex justify-between text-base font-extrabold text-slate-900 border-t border-slate-200 pt-2 font-serif">
+          <span>NET AMOUNT PAID:</span>
+          <span class="text-amber-800">₹{{ getOrderTotal(billOrder) }}</span>
+        </div>
+      </div>
+
+      <!-- Footer / Payment Status -->
+      <div class="bg-slate-50 p-2.5 rounded-xl border border-slate-100 space-y-1 text-[11px]">
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500">Payment Status:</span>
+          <span [ngClass]="billOrder.paid ? 'text-emerald-700' : 'text-amber-700'" class="font-bold">
+            {{ billOrder.paid ? 'PAID / SETTLED' : 'PENDING' }}
+          </span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-slate-500">Payment Method:</span>
+          <span class="font-medium text-slate-800">{{ billOrder.paid ? 'Online / UPI Paid' : 'Counter Cash' }}</span>
+        </div>
+        <p class="text-[10px] text-slate-400 text-center pt-1">Thank you for dining with Grand Royale! Please visit again.</p>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="p-3 bg-slate-50 border-t border-slate-200 flex gap-2">
+      <button (click)="printBill()" class="flex-1 py-2.5 bg-slate-900 hover:bg-black text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs">
+        <i data-lucide="printer" class="w-4 h-4"></i> Print Bill / Invoice
+      </button>
+      <button (click)="billOrder = null" class="px-4 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold transition">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- AUTH MODAL (LOGIN, REGISTER, FORGOT)       -->
+<!-- ========================================== -->
+<div *ngIf="isAuthModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs" (click)="isAuthModalOpen = false"></div>
+  <div class="relative bg-white rounded-3xl max-w-sm w-full p-5 sm:p-7 shadow-2xl z-10 space-y-4 max-h-[95vh] overflow-y-auto custom-scrollbar">
+    
+    <div class="flex items-center justify-between border-b pb-3">
+      <h3 class="text-xl font-bold font-serif text-slate-900">
+        {{ authView === 'login' ? 'Sign In' : authView === 'register' ? 'Register Account' : 'Reset Password' }}
+      </h3>
+      <button (click)="isAuthModalOpen = false" class="p-1 rounded-full hover:bg-slate-100 text-slate-400">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <!-- LOGIN FORM -->
+    <form *ngIf="authView === 'login'" (ngSubmit)="submitLogin()" class="space-y-3.5 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Phone Number</label>
+        <input type="text" [(ngModel)]="loginForm.phoneNumber" name="phone" required placeholder="e.g. 9876543210" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 font-semibold" />
+      </div>
+      <div>
+        <div class="flex justify-between items-center mb-1">
+          <label class="font-semibold text-slate-700">Password</label>
+          <button type="button" (click)="authView = 'forgot'" class="text-amber-700 hover:underline text-[11px] font-semibold">Forgot?</button>
+        </div>
+        <input type="password" [(ngModel)]="loginForm.password" name="password" required placeholder="••••••••" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500" />
+      </div>
+
+      <button type="submit" [disabled]="isLoading" class="w-full py-2.5 bg-slate-900 hover:bg-black text-white font-bold rounded-xl transition text-xs shadow-md flex items-center justify-center gap-1.5">
+        <i data-lucide="log-in" class="w-4 h-4"></i>
+        <span>{{ isLoading ? 'Signing In...' : 'Sign In' }}</span>
+      </button>
+
+      <div class="text-center text-slate-500 text-[11px] pt-1">
+        Don't have an account? <button type="button" (click)="authView = 'register'" class="text-amber-700 font-bold hover:underline">Register</button>
+      </div>
+    </form>
+
+    <!-- REGISTER FORM -->
+    <form *ngIf="authView === 'register'" (ngSubmit)="submitRegister()" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Full Name</label>
+        <input type="text" [(ngModel)]="registerForm.name" name="name" required placeholder="e.g. Aarav Sharma" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500" />
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Phone Number</label>
+        <input type="text" [(ngModel)]="registerForm.phoneNumber" name="phoneNumber" required placeholder="e.g. 9876543210" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 font-semibold" />
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Password</label>
+        <input type="password" [(ngModel)]="registerForm.password" name="password" required placeholder="Min 8 chars (e.g. Secret@123)" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500" />
+        <div *ngIf="registerForm.password" class="mt-1.5 space-y-1">
+          <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+            <div [ngClass]="evaluatePassword(registerForm.password).color" [style.width]="evaluatePassword(registerForm.password).width" class="h-full transition-all duration-300"></div>
+          </div>
+          <div class="flex items-center justify-between text-[10px] text-slate-500">
+            <span [ngClass]="evaluatePassword(registerForm.password).valid ? 'text-emerald-700 font-bold' : 'text-amber-700 font-semibold'">
+              Strength: {{ evaluatePassword(registerForm.password).label }} {{ evaluatePassword(registerForm.password).valid ? '✓' : '(' + evaluatePassword(registerForm.password).reason + ')' }}
+            </span>
+            <span>8+ chars, A-Z, a-z, 0-9, &#64;#$</span>
+          </div>
+        </div>
+      </div>
+      <button type="submit" [disabled]="isLoading" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition text-xs shadow-md flex items-center justify-center gap-1.5">
+        <i data-lucide="user-plus" class="w-4 h-4"></i>
+        <span>{{ isLoading ? 'Registering...' : 'Create Account & Sign In' }}</span>
+      </button>
+
+      <div class="text-center text-slate-500 text-[11px] pt-1">
+        Already registered? <button type="button" (click)="authView = 'login'" class="text-amber-700 font-bold hover:underline">Sign In</button>
+      </div>
+    </form>
+
+    <!-- FORGOT PASSWORD FORM -->
+    <form *ngIf="authView === 'forgot'" (ngSubmit)="submitForgot()" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Phone Number</label>
+        <input type="text" [(ngModel)]="forgotForm.phoneNumber" name="forgotPhone" required placeholder="e.g. 9876543210" class="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500 font-semibold" />
+      </div>
+
+      <div *ngIf="forgotForm.otpSent" class="space-y-3 pt-2 border-t">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Verification OTP (Default: 123456)</label>
+          <input type="text" [(ngModel)]="forgotForm.otp" name="otp" placeholder="123456" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">New Password</label>
+          <input type="password" [(ngModel)]="forgotForm.newPassword" name="newPassword" placeholder="Min 8 chars (e.g. Secret@123)" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-amber-500" />
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="isLoading" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition text-xs">
+        {{ forgotForm.otpSent ? 'Save New Password' : 'Request OTP' }}
+      </button>
+
+      <div class="text-center text-slate-500 text-[11px]">
+        <button type="button" (click)="authView = 'login'" class="text-amber-700 font-bold hover:underline">Back to Login</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ADD DISH MODAL (ADMIN ONLY)                -->
+<!-- ========================================== -->
+<div *ngIf="isDishModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs" (click)="isDishModalOpen = false"></div>
+  <div class="relative bg-white rounded-3xl max-w-md w-full p-5 sm:p-6 shadow-2xl z-10 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <div class="flex items-center justify-between border-b pb-3">
+      <h3 class="text-lg font-bold font-serif text-slate-900">{{ editingDishId ? 'Edit Menu Dish' : 'Add New Dish With Photo' }}</h3>
+      <button (click)="isDishModalOpen = false" class="p-1 rounded-full hover:bg-slate-100 text-slate-400">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <form (ngSubmit)="saveDish()" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Dish Name</label>
+        <input type="text" [(ngModel)]="dishForm.name" name="dishName" required placeholder="e.g. Paneer Lababdar" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl" />
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Category</label>
+        <select [(ngModel)]="dishForm.categoryId" name="categoryId" required class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+          <option *ngFor="let c of categories" [ngValue]="c.id">{{ c.name }}</option>
+        </select>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Price (₹)</label>
+          <input type="number" [(ngModel)]="dishForm.price" name="price" min="1" required placeholder="220" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Prep Time (Mins)</label>
+          <input type="number" [(ngModel)]="dishForm.preparationTimeMinutes" name="prep" min="1" required class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl" />
+        </div>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Dish Photo</label>
+        <div class="flex gap-2">
+          <input type="url" [(ngModel)]="dishForm.imageUrl" name="imageUrl" placeholder="https://images.unsplash.com/... or upload" class="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-xl" />
+          <label class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl cursor-pointer font-semibold flex items-center gap-1 transition">
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload
+            <input type="file" accept="image/*" class="hidden" (change)="onFileSelected($event, 'dish')" />
+          </label>
+        </div>
+        <div *ngIf="dishForm.imageUrl" class="mt-2 rounded-xl overflow-hidden h-28 border border-slate-200">
+          <img [src]="dishForm.imageUrl" class="w-full h-full object-cover" />
+        </div>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Description</label>
+        <textarea [(ngModel)]="dishForm.description" name="description" rows="2" placeholder="Rich gravy infused with butter, cashew paste..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl"></textarea>
+      </div>
+      <div class="flex items-center gap-2 pt-1">
+        <input type="checkbox" [(ngModel)]="dishForm.veg" name="veg" id="newDishVeg" class="rounded text-emerald-600 focus:ring-emerald-500" />
+        <label for="newDishVeg" class="font-semibold text-slate-700 cursor-pointer">Pure Vegetarian Dish</label>
+      </div>
+
+      <button type="submit" [disabled]="isLoading" class="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl transition text-xs shadow-md flex items-center justify-center gap-1.5">
+        <i data-lucide="check-circle" class="w-4 h-4"></i>
+        <span>{{ isLoading ? 'Saving Dish...' : (editingDishId ? 'Update Dish' : 'Save Dish to Menu') }}</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ADD CATEGORY MODAL (ADMIN ONLY)            -->
+<!-- ========================================== -->
+<div *ngIf="isCategoryModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs" (click)="isCategoryModalOpen = false"></div>
+  <div class="relative bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl z-10 space-y-4 max-h-[90vh] overflow-y-auto custom-scrollbar">
+    <div class="flex items-center justify-between border-b pb-3">
+      <h3 class="text-lg font-bold font-serif text-slate-900">{{ editingCategoryId ? 'Edit Menu Category' : 'Add Menu Category' }}</h3>
+      <button (click)="isCategoryModalOpen = false" class="p-1 rounded-full hover:bg-slate-100 text-slate-400">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <form (ngSubmit)="saveCategory()" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Category Name</label>
+        <input type="text" [(ngModel)]="categoryForm.name" name="catName" required placeholder="e.g. Traditional Breads & Rice" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl" />
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Description</label>
+        <textarea [(ngModel)]="categoryForm.description" name="catDesc" rows="2" placeholder="Brief summary of items in this category..." class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl"></textarea>
+      </div>
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Category Photo</label>
+        <div class="flex gap-2">
+          <input type="url" [(ngModel)]="categoryForm.imageUrl" name="catImg" placeholder="https://images.unsplash.com/... or upload" class="flex-1 p-2 bg-slate-50 border border-slate-200 rounded-xl" />
+          <label class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl cursor-pointer font-semibold flex items-center gap-1 transition">
+            <i data-lucide="upload" class="w-3.5 h-3.5"></i> Upload
+            <input type="file" accept="image/*" class="hidden" (change)="onFileSelected($event, 'category')" />
+          </label>
+        </div>
+        <div *ngIf="categoryForm.imageUrl" class="mt-2 rounded-xl overflow-hidden h-28 border border-slate-200">
+          <img [src]="categoryForm.imageUrl" class="w-full h-full object-cover" />
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="isLoading" class="w-full py-2.5 bg-orange-600 hover:bg-orange-700 text-white font-bold rounded-xl transition text-xs shadow-md flex items-center justify-center gap-1.5">
+        <i data-lucide="check-circle" class="w-4 h-4"></i>
+        <span>{{ isLoading ? 'Saving Category...' : (editingCategoryId ? 'Update Category' : 'Save Category') }}</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- ========================================== -->
+<!-- ADD COUPON MODAL (ADMIN ONLY)              -->
+<!-- ========================================== -->
+<div *ngIf="isCouponModalOpen" class="fixed inset-0 z-50 flex items-center justify-center p-4">
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs" (click)="isCouponModalOpen = false"></div>
+  <div class="relative bg-white rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl z-10 space-y-4">
+    <div class="flex items-center justify-between border-b pb-3">
+      <h3 class="text-lg font-bold font-serif text-slate-900">Add Discount Coupon</h3>
+      <button (click)="isCouponModalOpen = false" class="p-1 rounded-full hover:bg-slate-100 text-slate-400">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+
+    <form (ngSubmit)="saveCoupon()" class="space-y-3 text-xs">
+      <div>
+        <label class="block font-semibold text-slate-700 mb-1">Coupon Code</label>
+        <input type="text" [(ngModel)]="couponForm.couponCode" name="couponCode" required placeholder="e.g. FESTIVE30" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl uppercase font-bold" />
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Type</label>
+          <select [(ngModel)]="couponForm.discountType" name="discountType" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl font-semibold">
+            <option value="PERCENTAGE">Percentage (%)</option>
+            <option value="FLAT">Flat (₹)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Discount Value</label>
+          <input type="number" [(ngModel)]="couponForm.discountValue" name="discountValue" min="1" required placeholder="20" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl" />
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-2">
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Min Order (₹)</label>
+          <input type="number" [(ngModel)]="couponForm.minimumOrder" name="minimumOrder" min="0" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl" />
+        </div>
+        <div>
+          <label class="block font-semibold text-slate-700 mb-1">Max Cap (₹)</label>
+          <input type="number" [(ngModel)]="couponForm.upto" name="upto" min="0" placeholder="100" class="w-full p-2 bg-slate-50 border border-slate-200 rounded-xl" />
+        </div>
+      </div>
+
+      <button type="submit" [disabled]="isLoading" class="w-full py-2.5 bg-slate-900 hover:bg-black text-white font-bold rounded-xl transition text-xs shadow-md flex items-center justify-center gap-1.5">
+        <i data-lucide="tag" class="w-4 h-4"></i>
+        <span>{{ isLoading ? 'Creating Coupon...' : 'Create Coupon' }}</span>
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="mt-auto bg-slate-900 text-slate-400 text-xs py-7 border-t border-slate-800">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+    <div class="flex items-center gap-2 text-white font-semibold">
+      <i data-lucide="utensils" class="w-4 h-4 text-amber-500"></i>
+      <span>Grand Royale Canteen & Dining Hub</span>
+    </div>
+    <div>Contactless Dining • Table Reservations • Kitchen KDS • Direct Payments</div>
+    <div class="text-[11px] text-slate-500">© 2026 Grand Royale. All rights reserved.</div>
+  </div>
+</footer>
